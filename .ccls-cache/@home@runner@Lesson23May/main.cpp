@@ -5,6 +5,7 @@ using std::endl;
 
 int main()
 {
-    Date d = Date(19, 03, 2020);
-    cout << d.date_to_days() << endl;
+    Date d = Date(18, 05, 2023);
+    d.add_days(366);
+    d.print_short();
 }

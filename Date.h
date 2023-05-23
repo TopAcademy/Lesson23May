@@ -55,6 +55,7 @@ Date::Date()
     timezone = "GMT+3 (Moscow)";
 }
 
+
 // Constructor with 3 params
 Date::Date(UShort d, UShort m, UShort y) : Date()
 {
@@ -67,6 +68,7 @@ Date::Date(UShort d, UShort m, UShort y) : Date()
     year = y;
 }
 
+
 // Print date in short format (D.MM.YYYY)
 void Date::print_short()
 {
@@ -76,6 +78,7 @@ void Date::print_short()
     std::cout << this->year << std::endl;
 }
 
+
 // Print date in long format (D of monthname YYYY)
 void Date::print_long()
 {
@@ -83,6 +86,7 @@ void Date::print_long()
     std::cout << month_names[month];
     std::cout << ", " << this->year << std::endl;
 }
+
 
 // Convert date to count of days from 1.01.1970 (start_year)
 UShort Date::date_to_days()
@@ -107,29 +111,29 @@ UShort Date::date_to_days()
 }
 
 
-// Ïðåîáðàçóåò ÷èñëî äíåé ñ 1.01.1970
-// â ôîðìàò äàòû (òèï Date)
+// Convert count of days since 1970 to Date
 void Date::days_to_date(UShort d)
 {
-    // Ñêîëüêî ëåò
-    UShort years = d / 365;
-    years -= years / (365 / 4);
-    // Ñêîëüêî ìåñÿöåâ
-    d = d % ((years*365) + (years / (365 / 4)));
-    UShort months = 0, temp = 0;
+    // calc full years count
+    UShort full_years = (float)d / 365.25;
+    // exclude years days
+    d %= (UShort)((float)full_years*365.25);
+    // calc full months count
+    UShort full_months = 0;
     int i;
     for (i = 1; i <= 12; i++) {
-        temp += month_days[i];
-        if (temp <= d) months++;
+        UShort m_days = month_days[i];
+        // check for leap year's february
+        if ( (i==2) && ((start_year + full_years) % 4 == 0) )
+            m_days++;
+        if (d >= m_days) {
+            d -= m_days;
+            full_months++;
+        }        
         else break;
     }
-    // Êàêîå ÷èñëî
-    temp -= month_days[i];
-    if ((years + start_year) % 4 == 0) temp += 1;
-    d = d % temp;
-    //Date result = Date(years + start_year, months, d);
-    this->year = years + Date::start_year;
-    this->month = months + 1;
+    this->year = full_years + Date::start_year;
+    this->month = full_months + 1;
     this->day = d + 1;
 }
 
