@@ -1,3 +1,4 @@
+#pragma once
 /*
  *  Smart Date Class header file
  */
@@ -23,17 +24,27 @@ public:
     static const UShort start_year;
     // constructors
     Date();
+    Date(const Date& obj2);
     Date(UShort d, UShort m, UShort y);
     // other methods
     void print_short();       // prints date in the format: "D.MM.YYYY";
     void print_long();        // prints date in the format: "D of MonthName, YYYY";
-    void add_days(UInt d);    // adds <d> days to stored date
+    void add_days(int d);    // adds <d> days to stored date
+    void operator+=(UInt);        // += operator overloaded
+    void operator++();
+    void operator++(int);
+    UShort operator--();
+    Date operator = (const Date& obj2);
+    Date operator+(int);
+    friend bool is_equal(const Date& obj1, const Date& obj2);
+    friend bool operator==(const Date& obj1, const Date& obj2);
+    friend Date operator-(const Date&, int);
 };
 
 const UShort Date::start_year = 1970;
 
-std::string Date::month_names[13] {
-    "", "Jan", "Feb", "March", 
+std::string Date::month_names[13]{
+    "", "Jan", "Feb", "March",
         "Apr", "May", "June", "July",
         "Aug", "Sept", "Okt", "Nov", "Dec"
 };
@@ -53,6 +64,16 @@ Date::Date()
     month = 1;
     year = 1970;
     timezone = "GMT+3 (Moscow)";
+}
+
+
+// Copy constructor
+Date::Date(const Date& obj2)
+{
+    this->day = obj2.day;
+    this->month = obj2.month;
+    this->year = obj2.year;
+    this->timezone = obj2.timezone;
 }
 
 
@@ -97,11 +118,11 @@ UShort Date::date_to_days()
     UShort leaps_count = (this->year - 1972) / 4;
     if (this->year % 4) leaps_count++;
     if (this->year <= 1972) leaps_count = 0;
-    result += (365*full_years + leaps_count);
+    result += (365 * full_years + leaps_count);
     // calc full months count
     UShort full_months = this->month - 1;
     for (int i = 0; i < full_months; i++) {
-        result += month_days[i+1];
+        result += month_days[i + 1];
     }
     // add 29-th day if current year is leap and month after feb
     if ((this->year % 4 == 0) && (this->month > 2)) result++;
@@ -117,19 +138,19 @@ void Date::days_to_date(UShort d)
     // calc full years count
     UShort full_years = (float)d / 365.25;
     // exclude years days
-    d %= (UShort)((float)full_years*365.25);
+    d %= (UShort)((float)full_years * 365.25);
     // calc full months count
     UShort full_months = 0;
     int i;
     for (i = 1; i <= 12; i++) {
         UShort m_days = month_days[i];
         // check for leap year's february
-        if ( (i==2) && ((start_year + full_years) % 4 == 0) )
+        if ((i == 2) && ((start_year + full_years) % 4 == 0))
             m_days++;
         if (d >= m_days) {
             d -= m_days;
             full_months++;
-        }        
+        }
         else break;
     }
     this->year = full_years + Date::start_year;
@@ -139,9 +160,90 @@ void Date::days_to_date(UShort d)
 
 
 // Adds <d> days to date (d<=365)
-void Date::add_days(UInt d)
+void Date::add_days(int d)
 {
     UShort date_in_days = date_to_days();
     date_in_days += d;
     this->days_to_date(date_in_days);
+}
+
+// Operator += overload
+void Date::operator+=(UInt days_to_add)
+{
+    this->add_days(days_to_add);
+}
+
+// Prefix increment operator overload
+void Date::operator++()
+{
+    this->day++;
+    if (this->day > Date::month_days[this->month]) {
+        day = 1;
+        month++;
+    }
+    if (month == 13) {
+        month = 1;
+        year++;
+    }
+}
+
+// Postfix increment operator overload
+void Date::operator++(int)
+{
+    ++(*this);
+}
+
+// Prefix decrement operator overload
+UShort Date::operator--()
+{
+    this->day--;
+    if (day == 0) {
+        month = (month > 1) ? month - 1 : 12;
+        day = Date::month_days[month];
+    }
+    if (month == 12) year--;
+    return this->day;
+}
+
+// Operator = overload
+Date Date::operator = (const Date& obj2)
+{
+    this->day = obj2.day;
+    this->month = obj2.month;
+    this->year = obj2.year;
+    this->timezone = obj2.timezone;
+    return *this;
+}
+
+
+bool is_equal(const Date& obj1, const Date& obj2)
+{
+    if ((obj1.year == obj2.year) && (obj1.month == obj2.month)
+        && (obj1.day == obj2.day))
+        return true;
+    else return false;
+}
+
+
+// Operator == overload by friend function
+bool operator==(const Date& obj1, const Date& obj2)
+{
+    return is_equal(obj1, obj2);
+}
+
+
+// Operator + overload
+Date Date::operator+(int days_to_add)
+{
+    this->add_days(days_to_add);
+    return (*this);
+}
+
+// Operator - overload by friend function
+Date operator-(const Date& obj1, int days_to_add)
+{
+    Date temp{ obj1 };
+    days_to_add = -days_to_add;
+    temp.add_days(days_to_add);
+    return temp;
 }
