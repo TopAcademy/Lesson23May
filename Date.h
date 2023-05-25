@@ -36,6 +36,11 @@ public:
     UShort operator--();
     Date operator = (const Date& obj2);
     Date operator+(int);
+    bool operator<(const Date& obj2) const ;
+    bool operator>(const Date& obj2) const ;
+    bool operator%(int) const;
+    UShort operator [](int) const;
+    UShort& operator [](int);
     friend bool is_equal(const Date& obj1, const Date& obj2);
     friend bool operator==(const Date& obj1, const Date& obj2);
     friend Date operator-(const Date&, int);
@@ -235,8 +240,9 @@ bool operator==(const Date& obj1, const Date& obj2)
 // Operator + overload
 Date Date::operator+(int days_to_add)
 {
-    this->add_days(days_to_add);
-    return (*this);
+    Date temp{ *this };
+    temp.add_days(days_to_add);
+    return temp;
 }
 
 // Operator - overload by friend function
@@ -246,4 +252,56 @@ Date operator-(const Date& obj1, int days_to_add)
     days_to_add = -days_to_add;
     temp.add_days(days_to_add);
     return temp;
+}
+
+// Operator < overload
+bool Date::operator < (const Date& obj2) const
+{
+    bool res = false;
+    if (this->year < obj2.year) res = true;
+    else if ((this->year == obj2.year) && (this->month < obj2.month)) res = true;
+    else if ((this->month == obj2.month) && (this->day < obj2.day)) res = true;
+    return res;
+}
+
+// Operator > overload
+bool Date::operator > (const Date& obj2) const
+{
+    if (*this < obj2) return false;
+    if (*this == obj2) return false;
+    return true;
+
+}
+
+// Operator % overload
+// Gets int argument == 4
+// Returns true if the year is leap and false otherwise
+// Returns false if argument <> 4
+bool Date::operator%(int x) const
+{
+    if (x != 4) return false;
+    if (this->year % 4 == 0) return true;
+    else return false;
+}
+
+// Operator [] overload
+// Gets int argument == [1, 2, 3]
+// Returns:
+//  - day:      if arg == 1
+//  - months:   if arg == 2
+//  - year:     if arg == 3
+UShort Date::operator[](int arg) const
+{
+    if ((arg < 1) || (arg > 3)) return 0;
+    if (arg == 1) return this->day;
+    if (arg == 2) return this->month;
+    if (arg == 3) return this->year;
+}
+
+// Operator [] overload (changes the object)
+UShort& Date::operator[](int arg)
+{
+    if (arg == 1) return this->day;
+    if (arg == 2) return this->month;
+    if (arg == 3) return this->year;
 }
